@@ -235,14 +235,17 @@ $(document).keydown(function (e) {
     }
 });
 
-$(document).on('touchstart mousedown', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
+document.addEventListener(
+    'pointerdown',
+    function (e) {
+        // ігноруємо багатопальцеві жести
+        if (e.pointerType === 'touch' && e.isPrimary === false) return;
 
-    if (e.type === 'touchstart' && e.originalEvent.touches.length > 1) return;
-
-    screenClick();
-});
+        // викликаємо дію
+        screenClick();
+    },
+    { passive: true }
+);
 
 function screenClick() {
     if (currentstate == states.GameScreen) {
