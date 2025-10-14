@@ -270,10 +270,6 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
-    requestAnimationFrame(() => {
-        soundJump.stop();
-        soundJump.play();
-    });
 }
 
 function setBigScore(erase) {
