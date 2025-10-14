@@ -113,8 +113,18 @@ function startGame() {
     }
     requestAnimationFrame(gameLoopFrame);
 
-    // Запускаємо цикл створення труб із контрольованим інтервалом
-    loopPipeloop = setInterval(updatePipes, 1800);
+    let lastPipeTime = 0;
+    function pipeLoopFrame(timestamp) {
+        if (currentstate !== states.GameScreen) return;
+
+        if (timestamp - lastPipeTime > 1800) {
+            updatePipes();
+            lastPipeTime = timestamp;
+        }
+
+        requestAnimationFrame(pipeLoopFrame);
+    }
+    requestAnimationFrame(pipeLoopFrame);
 
     // Початковий стрибок
     playerJump();
@@ -391,27 +401,35 @@ function playerScore() {
     soundScore.play();
     setBigScore();
 }
-
 function updatePipes() {
-    //Do any pipes need removal?
+    // 1️⃣ Видаляємо старі труби, які вийшли за межі екрана
     $('.pipe')
         .filter(function () {
-            return $(this).position().left <= -100;
+            return $(this).position().left <= -pipewidth;
         })
         .remove();
 
-    //add a new pipe (top height + bottom height  + pipeheight == flyArea) and put it in our tracker
-    var padding = 80;
-    var constraint = flyArea - pipeheight - padding * 2; //double padding (for top and bottom)
-    var topheight = Math.floor(Math.random() * constraint + padding); //add lower padding
-    var bottomheight = flyArea - pipeheight - topheight;
-    var newpipe = $(
-        '<div class="pipe animated"><div class="pipe_upper" style="height: ' +
-            topheight +
-            'px;"></div><div class="pipe_lower" style="height: ' +
-            bottomheight +
-            'px;"></div></div>'
-    );
+    // 2️⃣ Якщо труб уже забагато — прибираємо найстарішу з масиву
+    if (pipes.length > 6) {
+        const oldPipe = pipes.shift();
+        if (oldPipe && oldPipe.remove) oldPipe.remove();
+    }
+
+    // 3️⃣ Генеруємо нову трубу
+    const padding = 80;
+    const constraint = flyArea - pipeheight - padding * 2; // простір для випадкової висоти
+    const topheight = Math.floor(Math.random() * constraint + padding);
+    const bottomheight = flyArea - pipeheight - topheight;
+
+    // 4️⃣ Створюємо HTML лише один раз (менше reflow)
+    const newpipe = $(`
+        <div class="pipe animated" style="will-change: transform;">
+            <div class="pipe_upper" style="height:${topheight}px;"></div>
+            <div class="pipe_lower" style="height:${bottomheight}px;"></div>
+        </div>
+    `);
+
+    // 5️⃣ Додаємо трубу на екран і до списку
     $('#flyarea').append(newpipe);
     pipes.push(newpipe);
 }
