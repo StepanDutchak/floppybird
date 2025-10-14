@@ -39,7 +39,7 @@ if (isMobileDevice) {
 }
 var backgroundMusic = new buzz.sound('assets/sounds/mimi_bg.mp3', {
     loop: true,
-    volume: 25,
+    volume: 10,
 });
 //loops
 var loopGameloop;
@@ -102,9 +102,7 @@ function showSplash() {
         soundSwoosh.stop();
         soundSwoosh.play();
     }
-    if (backgroundMusic) {
-        backgroundMusic.stop();
-    }
+
     $('.pipe').remove();
     pipes = new Array();
 
@@ -355,9 +353,6 @@ function playerDead() {
 
     //it's time to change states. as of now we're considered ScoreScreen to disable left click/flying
     currentstate = states.ScoreScreen;
-    if (backgroundMusic) {
-        backgroundMusic.pause();
-    }
 
     //destroy our gameloops
     clearInterval(loopGameloop);
