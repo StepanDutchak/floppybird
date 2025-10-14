@@ -1,4 +1,5 @@
 var debugmode = false;
+let musicStarted = false;
 
 var states = Object.freeze({
     SplashScreen: 0,
@@ -37,10 +38,36 @@ if (isMobileDevice) {
 } else {
     buzz.all().setVolume(volume);
 }
-var backgroundMusic = new buzz.sound('assets/sounds/mimi_bg.mp3', {
-    loop: true,
-    volume: 5,
-});
+let audioContext;
+let bgSource;
+let gainNode;
+
+async function initBackgroundMusic() {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const response = await fetch('assets/sounds/mimi_bg.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    gainNode = audioContext.createGain();
+    gainNode.gain.value = 0.1; // 10% гучності
+
+    bgSource = audioContext.createBufferSource();
+    bgSource.buffer = audioBuffer;
+    bgSource.loop = true;
+    bgSource.connect(gainNode).connect(audioContext.destination);
+}
+
+function playBackgroundMusic() {
+    if (audioContext && bgSource) {
+        audioContext.resume();
+        bgSource.start(0);
+    }
+}
+
+function stopBackgroundMusic() {
+    if (bgSource) bgSource.stop();
+}
+
 //loops
 var loopGameloop;
 var loopPipeloop;
@@ -56,21 +83,7 @@ $(document).ready(function () {
     //start with the splash screen
     showSplash();
 });
-document.addEventListener(
-    'pointerdown',
-    function initAudio() {
-        try {
-            backgroundMusic.play().pause(); // "розблоковує" фонову музику
-            soundJump.play().stop();
-            soundScore.play().stop();
-            soundHit.play().stop();
-            soundDie.play().stop();
-            soundSwoosh.play().stop();
-        } catch (e) {}
-        document.removeEventListener('pointerdown', initAudio);
-    },
-    { passive: true }
-);
+
 function getCookie(cname) {
     var name = cname + '=';
     var ca = document.cookie.split(';');
@@ -151,11 +164,6 @@ function startGame() {
 
     // Початковий стрибок
     playerJump();
-    if (backgroundMusic && !backgroundMusic.isPaused()) {
-        // Якщо вже грає — нічого не робимо
-    } else {
-        backgroundMusic.play();
-    }
 }
 
 function updatePlayer(player) {
@@ -281,7 +289,14 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
-
+    if (!musicStarted) {
+        musicStarted = true;
+        if (!audioContext || !bgSource) {
+            initBackgroundMusic().then(playBackgroundMusic);
+        } else {
+            audioContext.resume();
+        }
+    }
     if (!isMobileDevice) {
         requestAnimationFrame(() => {
             try {
