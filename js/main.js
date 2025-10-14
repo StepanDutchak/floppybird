@@ -69,53 +69,54 @@ function setCookie(cname, cvalue, exdays) {
 function showSplash() {
     currentstate = states.SplashScreen;
 
-    //set the defaults (again)
     velocity = 0;
     position = 180;
     rotation = 0;
     score = 0;
 
-    //update the player in preparation for the next game
     $('#player').css({ y: 0, x: 0 });
     updatePlayer($('#player'));
 
     soundSwoosh.stop();
     soundSwoosh.play();
 
-    //clear out all the pipes if there are any
     $('.pipe').remove();
     pipes = new Array();
 
-    //make everything animated again
     $('.animated').css('animation-play-state', 'running');
     $('.animated').css('-webkit-animation-play-state', 'running');
 
-    //fade in the splash
-    $('#splash').transition({ opacity: 1 }, 2000, 'ease');
+    // показуємо splash плавно
+    $('#splash').removeClass('fade-out').addClass('fade-in');
 }
 
 function startGame() {
     currentstate = states.GameScreen;
 
-    //fade out the splash
-    $('#splash').stop();
-    $('#splash').transition({ opacity: 0 }, 500, 'ease');
+    // Приховуємо splash
+    $('#splash').removeClass('fade-in').addClass('fade-out');
 
-    //update the big score
+    // Скидаємо рахунок
     setBigScore();
 
-    //debug mode?
+    // Debug mode — показує bounding box
     if (debugmode) {
-        //show the bounding boxes
         $('.boundingbox').show();
     }
 
-    //start up our loops
-    var updaterate = 1000.0 / 60.0; //60 times a second
-    loopGameloop = setInterval(gameloop, updaterate);
+    // Запускаємо основний цикл гри через requestAnimationFrame
+    function gameLoopFrame() {
+        gameloop();
+        if (currentstate === states.GameScreen) {
+            requestAnimationFrame(gameLoopFrame);
+        }
+    }
+    requestAnimationFrame(gameLoopFrame);
+
+    // Запускаємо цикл створення труб із контрольованим інтервалом
     loopPipeloop = setInterval(updatePipes, 1800);
 
-    //jump from the start!
+    // Початковий стрибок
     playerJump();
 }
 

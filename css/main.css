@@ -372,3 +372,15 @@ Screen - Game
    text-decoration: none;
    color: #fff;
 }
+
+.fade-in {
+  opacity: 1 !important;
+  transition: opacity 0.6s ease;
+  display: block !important;
+}
+
+.fade-out {
+  opacity: 0 !important;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
