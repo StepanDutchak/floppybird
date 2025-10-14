@@ -231,9 +231,14 @@ $(document).keydown(function (e) {
     }
 });
 
-//Handle mouse down OR touch start
-if ('ontouchstart' in window) $(document).on('touchstart', screenClick);
-else $(document).on('mousedown', screenClick);
+$(document).on('touchstart mousedown', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.type === 'touchstart' && e.originalEvent.touches.length > 1) return;
+
+    screenClick();
+});
 
 function screenClick() {
     if (currentstate == states.GameScreen) {
