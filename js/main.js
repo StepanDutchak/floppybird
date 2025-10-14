@@ -32,13 +32,8 @@ var soundScore = new buzz.sound('assets/sounds/sfx_point.ogg');
 var soundHit = new buzz.sound('assets/sounds/sfx_hit.ogg');
 var soundDie = new buzz.sound('assets/sounds/sfx_die.ogg');
 var soundSwoosh = new buzz.sound('assets/sounds/sfx_swooshing.ogg');
-if (isMobileDevice) {
-    buzz.all().setVolume(0);
-    console.log('🔕 Звук вимкнено для мобільного пристрою');
-} else {
-    buzz.all().setVolume(volume);
-    console.log('🔊 Звук увімкнено для ПК/ноутбука');
-}
+buzz.all().setVolume(volume);
+
 //loops
 var loopGameloop;
 var loopPipeloop;
@@ -256,10 +251,15 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
-    requestAnimationFrame(() => {
-        soundJump.stop();
-        soundJump.play();
-    });
+
+    if (!isMobileDevice) {
+        requestAnimationFrame(() => {
+            try {
+                soundJump.stop();
+                soundJump.play();
+            } catch (e) {}
+        });
+    }
 }
 
 function setBigScore(erase) {
