@@ -247,16 +247,12 @@ $(document).keydown(function (e) {
     }
 });
 
-document.addEventListener(
-    'touchstart',
-    function (e) {
-        if (e.touches && e.touches.length > 1) return;
-        screenClick();
-    },
-    { passive: true }
-);
+$(document).on('touchstart mousedown', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-document.addEventListener('mousedown', function (e) {
+    if (e.type === 'touchstart' && e.originalEvent.touches.length > 1) return;
+
     screenClick();
 });
 
@@ -270,6 +266,19 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
+
+    try {
+        soundJump.stop();
+    } catch (e) {}
+
+    try {
+        const jumpSound = new buzz.sound('assets/sounds/sfx_wing.ogg');
+        jumpSound.setVolume(volume);
+        jumpSound.play();
+    } catch (e) {
+        // fallback: buzz може не встигнути ініціалізуватись
+        soundJump.play();
+    }
 }
 
 function setBigScore(erase) {
