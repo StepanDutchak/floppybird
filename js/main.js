@@ -37,6 +37,10 @@ if (isMobileDevice) {
 } else {
     buzz.all().setVolume(volume);
 }
+var backgroundMusic = new buzz.sound('assets/sounds/mimi_bg.mp3', {
+    loop: true,
+    volume: 25,
+});
 //loops
 var loopGameloop;
 var loopPipeloop;
@@ -52,7 +56,21 @@ $(document).ready(function () {
     //start with the splash screen
     showSplash();
 });
-
+document.addEventListener(
+    'pointerdown',
+    function initAudio() {
+        try {
+            backgroundMusic.play().pause(); // "розблоковує" фонову музику
+            soundJump.play().stop();
+            soundScore.play().stop();
+            soundHit.play().stop();
+            soundDie.play().stop();
+            soundSwoosh.play().stop();
+        } catch (e) {}
+        document.removeEventListener('pointerdown', initAudio);
+    },
+    { passive: true }
+);
 function getCookie(cname) {
     var name = cname + '=';
     var ca = document.cookie.split(';');
@@ -83,6 +101,9 @@ function showSplash() {
     if (!isMobileDevice) {
         soundSwoosh.stop();
         soundSwoosh.play();
+    }
+    if (backgroundMusic) {
+        backgroundMusic.stop();
     }
     $('.pipe').remove();
     pipes = new Array();
@@ -132,6 +153,11 @@ function startGame() {
 
     // Початковий стрибок
     playerJump();
+    if (backgroundMusic && !backgroundMusic.isPaused()) {
+        // Якщо вже грає — нічого не робимо
+    } else {
+        backgroundMusic.play();
+    }
 }
 
 function updatePlayer(player) {
@@ -329,6 +355,9 @@ function playerDead() {
 
     //it's time to change states. as of now we're considered ScoreScreen to disable left click/flying
     currentstate = states.ScoreScreen;
+    if (backgroundMusic) {
+        backgroundMusic.pause();
+    }
 
     //destroy our gameloops
     clearInterval(loopGameloop);
