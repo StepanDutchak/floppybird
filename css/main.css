@@ -294,8 +294,8 @@ Screen - Game
 .bird
 {
    position: absolute;
-   width: 34px;
-   height: 24px;
+   width: 45px;
+   height: 45px;
    background-image: url('../assets/bird.png');
 
    /* -webkit-animation: animBird 300ms steps(4) infinite;
