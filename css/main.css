@@ -171,7 +171,7 @@ Screen - Game
    position: absolute;
    bottom: 0;
    width: 100%;
-   height: 42px;
+   height: 45px;
    background-image: url('../assets/land.png');
    background-repeat: repeat-x;
    -webkit-animation: animLand 2516ms linear infinite;
@@ -192,16 +192,20 @@ Screen - Game
    padding: 1px;
 }
 
-#splash
-{
+#splash {
    position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
    opacity: 0;
-   top: 75px;
-   left: 65px;
-   width: 188px;
-   height: 170px;
-   background-image: url('../assets/splash.png');
+
+   width: 600px;
+   height: 400px;
+
+   background-image: url('../assets/splash.svg');
    background-repeat: no-repeat;
+   background-position: center;
+   background-size: contain;
 }
 
 #scoreboard
@@ -290,9 +294,9 @@ Screen - Game
 .bird
 {
    position: absolute;
-   width: 45px;
-   height: 45px;
-   background-image: url('../assets/bird.png');
+   width: 40px;
+   height: 40px;
+   background-image: url('../assets/bird.svg');
 
    /* -webkit-animation: animBird 300ms steps(4) infinite;
    animation: animBird 300ms steps(4) infinite; */
