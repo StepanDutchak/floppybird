@@ -80,10 +80,10 @@ function showSplash() {
 
     $('#player').css({ y: 0, x: 0 });
     updatePlayer($('#player'));
-
-    soundSwoosh.stop();
-    soundSwoosh.play();
-
+    if (!isMobileDevice) {
+        soundSwoosh.stop();
+        soundSwoosh.play();
+    }
     $('.pipe').remove();
     pipes = new Array();
 
@@ -366,18 +366,20 @@ function showScore() {
     setSmallScore();
     setHighScore();
     var wonmedal = setMedal();
-
-    //SWOOSH!
-    soundSwoosh.stop();
-    soundSwoosh.play();
-
+    if (!isMobileDevice) {
+        //SWOOSH!
+        soundSwoosh.stop();
+        soundSwoosh.play();
+    }
     //show the scoreboard
     $('#scoreboard').css({ y: '40px', opacity: 0 }); //move it down so we can slide it up
     $('#replay').css({ y: '40px', opacity: 0 });
     $('#scoreboard').transition({ y: '0px', opacity: 1 }, 600, 'ease', function () {
         //When the animation is done, animate in the replay button and SWOOSH!
-        soundSwoosh.stop();
-        soundSwoosh.play();
+        if (!isMobileDevice) {
+            soundSwoosh.stop();
+            soundSwoosh.play();
+        }
         $('#replay').transition({ y: '0px', opacity: 1 }, 600, 'ease');
 
         //also animate in the MEDAL! WOO!
@@ -396,9 +398,10 @@ $('#replay').click(function () {
     if (!replayclickable) return;
     else replayclickable = false;
     //SWOOSH!
-    soundSwoosh.stop();
-    soundSwoosh.play();
-
+    if (!isMobileDevice) {
+        soundSwoosh.stop();
+        soundSwoosh.play();
+    }
     //fade out the scoreboard
     $('#scoreboard').transition({ y: '-40px', opacity: 0 }, 1000, 'ease', function () {
         //when that's done, display us back to nothing
