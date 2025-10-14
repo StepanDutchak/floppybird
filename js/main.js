@@ -39,7 +39,7 @@ if (isMobileDevice) {
 }
 var backgroundMusic = new buzz.sound('assets/sounds/mimi_bg.mp3', {
     loop: true,
-    volume: 10,
+    volume: 5,
 });
 //loops
 var loopGameloop;
@@ -442,8 +442,10 @@ $('#replay').click(function () {
 function playerScore() {
     score += 1;
     //play score sound
-    soundScore.stop();
-    soundScore.play();
+    if (!isMobileDevice) {
+        soundScore.stop();
+        soundScore.play();
+    }
     setBigScore();
 }
 function updatePipes() {
