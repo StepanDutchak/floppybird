@@ -37,6 +37,22 @@ buzz.all().setVolume(volume);
 var loopGameloop;
 var loopPipeloop;
 
+// 🎵 Попереднє "розблокування" звуку при першому тапі
+document.addEventListener(
+    'touchstart',
+    function initAudio() {
+        try {
+            soundJump.play().stop();
+            soundScore.play().stop();
+            soundHit.play().stop();
+            soundDie.play().stop();
+            soundSwoosh.play().stop();
+        } catch (e) {}
+        document.removeEventListener('touchstart', initAudio);
+    },
+    { passive: true }
+);
+
 $(document).ready(function () {
     if (window.location.search == '?debug') debugmode = true;
     if (window.location.search == '?easy') pipeheight = 200;
@@ -231,12 +247,16 @@ $(document).keydown(function (e) {
     }
 });
 
-$(document).on('touchstart mousedown', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
+document.addEventListener(
+    'touchstart',
+    function (e) {
+        if (e.touches && e.touches.length > 1) return;
+        screenClick();
+    },
+    { passive: true }
+);
 
-    if (e.type === 'touchstart' && e.originalEvent.touches.length > 1) return;
-
+document.addEventListener('mousedown', function (e) {
     screenClick();
 });
 
@@ -250,9 +270,10 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
-    //play jump sound
-    soundJump.stop();
-    soundJump.play();
+    requestAnimationFrame(() => {
+        soundJump.stop();
+        soundJump.play();
+    });
 }
 
 function setBigScore(erase) {
