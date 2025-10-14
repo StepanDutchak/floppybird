@@ -23,6 +23,7 @@ var pipewidth = 52;
 var pipes = new Array();
 
 var replayclickable = false;
+var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 //sounds
 var volume = 30;
@@ -31,27 +32,16 @@ var soundScore = new buzz.sound('assets/sounds/sfx_point.ogg');
 var soundHit = new buzz.sound('assets/sounds/sfx_hit.ogg');
 var soundDie = new buzz.sound('assets/sounds/sfx_die.ogg');
 var soundSwoosh = new buzz.sound('assets/sounds/sfx_swooshing.ogg');
-buzz.all().setVolume(volume);
-
+if (isMobileDevice) {
+    buzz.all().setVolume(0);
+    console.log('🔕 Звук вимкнено для мобільного пристрою');
+} else {
+    buzz.all().setVolume(volume);
+    console.log('🔊 Звук увімкнено для ПК/ноутбука');
+}
 //loops
 var loopGameloop;
 var loopPipeloop;
-
-// 🎵 Попереднє "розблокування" звуку при першому тапі
-document.addEventListener(
-    'touchstart',
-    function initAudio() {
-        try {
-            soundJump.play().stop();
-            soundScore.play().stop();
-            soundHit.play().stop();
-            soundDie.play().stop();
-            soundSwoosh.play().stop();
-        } catch (e) {}
-        document.removeEventListener('touchstart', initAudio);
-    },
-    { passive: true }
-);
 
 $(document).ready(function () {
     if (window.location.search == '?debug') debugmode = true;
@@ -266,19 +256,10 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
-
-    try {
+    requestAnimationFrame(() => {
         soundJump.stop();
-    } catch (e) {}
-
-    try {
-        const jumpSound = new buzz.sound('assets/sounds/sfx_wing.ogg');
-        jumpSound.setVolume(volume);
-        jumpSound.play();
-    } catch (e) {
-        // fallback: buzz може не встигнути ініціалізуватись
         soundJump.play();
-    }
+    });
 }
 
 function setBigScore(erase) {
