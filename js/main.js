@@ -76,12 +76,46 @@ $(document).ready(function () {
     if (window.location.search == '?debug') debugmode = true;
     if (window.location.search == '?easy') pipeheight = 200;
 
-    //get the highscore
     var savedscore = getCookie('highscore');
     if (savedscore != '') highscore = parseInt(savedscore);
 
-    //start with the splash screen
-    showSplash();
+    const hasAccess = localStorage.getItem('drimssyGameAccess') === 'true';
+    if (hasAccess) {
+        $('#accessModal').hide();
+        showSplash();
+    } else {
+        $('#accessModal').show();
+    }
+
+    $('#submitCode').click(async function () {
+        const code = $('#accessCode').val().trim();
+        const errorEl = $('#errorMessage');
+
+        if (!code) {
+            errorEl.text('Use code');
+            return;
+        }
+
+        try {
+            const res = await fetch('http://localhost:3000/auth/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem('drimssyGameAccess', 'true');
+                $('#accessModal').fadeOut();
+                showSplash();
+            } else {
+                errorEl.text('Wrong code');
+            }
+        } catch (err) {
+            errorEl.text('⚠️ Server unavailable');
+            console.error(err);
+        }
+    });
 });
 
 function getCookie(cname) {
@@ -289,14 +323,14 @@ function screenClick() {
 
 function playerJump() {
     velocity = jump;
-    if (!musicStarted) {
-        musicStarted = true;
-        if (!audioContext || !bgSource) {
-            initBackgroundMusic().then(playBackgroundMusic);
-        } else {
-            audioContext.resume();
-        }
-    }
+    // if (!musicStarted) {
+    //     musicStarted = true;
+    //     if (!audioContext || !bgSource) {
+    //         initBackgroundMusic().then(playBackgroundMusic);
+    //     } else {
+    //         audioContext.resume();
+    //     }
+    // }
     if (!isMobileDevice) {
         requestAnimationFrame(() => {
             try {
@@ -417,21 +451,65 @@ function showScore() {
     $('#scoreboard').css({ y: '40px', opacity: 0 }); //move it down so we can slide it up
     $('#replay').css({ y: '40px', opacity: 0 });
     $('#scoreboard').transition({ y: '0px', opacity: 1 }, 600, 'ease', function () {
-        //When the animation is done, animate in the replay button and SWOOSH!
         if (!isMobileDevice) {
             soundSwoosh.stop();
             soundSwoosh.play();
         }
         $('#replay').transition({ y: '0px', opacity: 1 }, 600, 'ease');
 
-        //also animate in the MEDAL! WOO!
         if (wonmedal) {
             $('#medal').css({ scale: 2, opacity: 0 });
             $('#medal').transition({ opacity: 1, scale: 1 }, 1200, 'ease');
         }
     });
+    if (score >= 100) {
+        const couponCode = 'MIMI-FREE-2025';
 
-    //make the replay button clickable
+        // Clear all local data except promo code
+        const savedPromo = localStorage.getItem('mimiPromoCode');
+        localStorage.clear();
+        if (savedPromo) localStorage.setItem('mimiPromoCode', savedPromo);
+
+        // Save new promo code and remove game access
+        localStorage.setItem('mimiPromoCode', couponCode);
+        localStorage.removeItem('drimssyGameAccess');
+
+        // Show coupon popup
+        const couponHTML = `
+            <div id="couponPopup" class="coupon-popup">
+                <h3>🎉 Congratulations!</h3>
+                <p>You’ve earned a free <b>MiMi plush toy</b>!</p>
+                <p>Your coupon code:</p>
+                <div class="coupon-code">${couponCode}</div>
+                <button id="copyCoupon">Copy Code</button>
+            </div>
+        `;
+
+        $('body').append(couponHTML);
+
+        $('#copyCoupon').click(() => {
+            navigator.clipboard.writeText(couponCode);
+            $('#copyCoupon').text('✅ Copied!');
+        });
+
+        $('#couponPopup')
+            .css({
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: '#fff',
+                padding: '20px 30px',
+                borderRadius: '12px',
+                textAlign: 'center',
+                zIndex: 9999,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                opacity: 0,
+                width: '300px',
+            })
+            .animate({ opacity: 1 }, 600);
+    }
+
     replayclickable = true;
 }
 
