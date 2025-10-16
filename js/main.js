@@ -105,6 +105,15 @@ $(document).ready(function () {
     var savedscore = getCookie('highscore');
     if (savedscore != '') highscore = parseInt(savedscore);
 
+    // 🔹 1. Витягуємо код із URL (наприклад /ABC123)
+    const params = new URLSearchParams(window.location.search);
+    const codeFromUrl = params.get('code');
+
+    // 🔹 2. Заповнюємо поле автоматично, якщо код є
+    if (codeFromUrl && codeFromUrl.length > 0) {
+        $('#accessCode').val(codeFromUrl.toUpperCase());
+    }
+
     const hasAccess = localStorage.getItem('drimssyGameAccess') === 'true';
     if (hasAccess) {
         $('#accessModal').hide();
@@ -117,7 +126,10 @@ $(document).ready(function () {
         const code = $('#accessCode').val().trim();
         const email = $('#userEmail').val().trim();
         const errorEl = $('#errorMessage');
-
+        if (!email) {
+            errorEl.text('📧 Please enter your email');
+            return;
+        }
         if (!code) {
             errorEl.text('Use code');
             return;
