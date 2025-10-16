@@ -364,7 +364,7 @@ function setMedal() {
     if (score >= 10) medal = 'bronze';
     if (score >= 20) medal = 'silver';
     if (score >= 30) medal = 'gold';
-    if (score >= 40) medal = 'platinum';
+    if (score >= 80) medal = 'platinum';
 
     elemmedal.append('<img src="assets/medal_' + medal + '.png" alt="' + medal + '">');
     return true;
@@ -410,7 +410,6 @@ async function fetchWinn() {
         const data = await res.json();
 
         if (data.success) {
-            // створюємо елементи
             const bannerOverlay = $(`
                 <div id="winnerOverlay">
                     <div id="winnerBanner">
@@ -507,7 +506,7 @@ async function showScore() {
         }
     });
 
-    if (score >= 1) {
+    if (score >= 100) {
         await fetchWinn();
         localStorage.removeItem('drimssyGameAccess');
     }
