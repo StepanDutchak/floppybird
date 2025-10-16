@@ -3,12 +3,11 @@
    <head>
       <title>Floppy mi mi secret</title>
       <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-      <meta name="description" content="Play Floppy mi mi  — a cute mini-game from Drimssy!" />
+      <meta name="description" content="Play Floppy mi mi — a cute mini-game from Drimssy!" />
       <meta name="author" content="Drimssy Studio" />
       <meta name="keywords" content="flappybird,flappy,bird,floppybird,floppy,html,html5,css,css3,js,javascript,jquery,github,nebez,briefkani,nebezb,open,source,opensource" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 
-      <!-- Open Graph tags -->
       <meta property="og:title" content="Floppy mi mi secret" />
       <meta property="og:description" content="Play Floppy mi mi — a cute mini-game from Drimssy!" />
       <meta property="og:type" content="website" />
@@ -16,22 +15,22 @@
       <meta property="og:url" content="https://game.drimssy.com" />
       <meta property="og:site_name" content="Drimssy" />
 
-
-      <!-- Style sheets -->
       <link href="css/reset.css" rel="stylesheet">
       <link href="css/main.css" rel="stylesheet">
+
+     <script src="https://cdn.lgrckt-in.com/LogRocket.min.js" crossorigin="anonymous"></script>
+     <script>window.LogRocket && window.LogRocket.init('kxagfp/drimssy-game');</script>
    </head>
+
    <body>
       <div id="gamecontainer">
          <div id="gamescreen">
             <div id="sky" class="animated">
                <div id="flyarea">
                   <div id="ceiling" class="animated"></div>
-                  <!-- This is the flying and pipe area container -->
                   <div id="player" class="bird animated"></div>
 
                   <div id="bigscore"></div>
-
                   <div id="splash"></div>
 
                   <div id="scoreboard">
@@ -40,26 +39,28 @@
                      <div id="highscore"></div>
                      <div id="replay"><img src="assets/replay.png" alt="replay"></div>
                   </div>
-
-                  <!-- Pipes go here! -->
                </div>
             </div>
             <div id="land" class="animated"><div id="debug"></div></div>
          </div>
       </div>
+
       <div class="boundingbox" id="playerbox"></div>
       <div class="boundingbox" id="pipebox"></div>
-     <!-- 🟣 Access Code Modal -->
-<div id="accessModal" class="modal">
+
+ <div id="accessModal" class="modal">
   <div class="modal-content">
     <h2>🔐 Enter your secret code</h2>
     <p class="modal-subtext">You can find the code behind your Drimssy toy box.</p>
+    
     <input id="accessCode" type="text" maxlength="6" placeholder="Enter code" />
+    
+    <input id="userEmail" type="email" placeholder="Enter your email" style="margin-top:10px;" />
+    
     <button id="submitCode">Play now</button>
     <p id="errorMessage" class="error"></p>
   </div>
 </div>
-
 
       <script src="js/jquery.min.js"></script>
       <script src="js/jquery.transit.min.js"></script>
@@ -80,22 +81,53 @@
          ga('send', 'pageview');
       }
       </script>
+
+      <script>
+        let lastTouchEnd = 0;
+        document.addEventListener(
+          'touchend',
+          function (event) {
+            const now = new Date().getTime();
+            if (now - lastTouchEnd <= 300) {
+              event.preventDefault(); 
+            }
+            lastTouchEnd = now;
+          },
+          false
+        );
+
+        document.body.style.touchAction = 'manipulation';
+      </script>
       <script>
 
-let lastTouchEnd = 0;
-  document.addEventListener(
-    'touchend',
-    function (event) {
-      const now = new Date().getTime();
-      if (now - lastTouchEnd <= 300) {
-        event.preventDefault(); 
-      }
-      lastTouchEnd = now;
-    },
-    false
-  );
+document.getElementById('submitCode').addEventListener('click', () => {
+  const email = document.getElementById('userEmail').value.trim();
+  const errorEl = document.getElementById('errorMessage');
 
-  document.body.style.touchAction = 'manipulation';
+  if (!email) {
+    errorEl.textContent = '📧 Please enter your email before playing.';
+    return;
+  }
+
+  const prevEmail = localStorage.getItem('logrocketEmail');
+
+  if (email !== prevEmail) {
+    localStorage.setItem('logrocketEmail', email);
+
+    if (window.LogRocket) {
+      LogRocket.startNewSession();
+      LogRocket.identify(email, {
+        email: email,
+        source: 'Floppy mi mi secret',
+        timestamp: new Date().toISOString(),
+      });
+      console.log(`🔁 New LogRocket session started for ${email}`);
+    }
+  } else {
+    console.log(`ℹ️ Same email as before — continuing current LogRocket session`);
+  }
+});
+
 </script>
    </body>
 </html>

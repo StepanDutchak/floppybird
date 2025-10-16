@@ -49,7 +49,7 @@ async function initBackgroundMusic() {
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
     gainNode = audioContext.createGain();
-    gainNode.gain.value = 0.1; // 10% гучності
+    gainNode.gain.value = 0.1;
 
     bgSource = audioContext.createBufferSource();
     bgSource.buffer = audioBuffer;
@@ -68,9 +68,35 @@ function stopBackgroundMusic() {
     if (bgSource) bgSource.stop();
 }
 
-//loops
 var loopGameloop;
 var loopPipeloop;
+
+async function verifyCode(code) {
+    const errorEl = $('#errorMessage');
+
+    try {
+        const res = await fetch('https://drimssy-game-server.onrender.com/auth/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.setItem('drimssyGameAccess', 'true');
+            $('#accessModal').fadeOut();
+            showSplash();
+        } else {
+            errorEl.text(data.message || 'Wrong code ❌');
+        }
+    } catch (err) {
+        errorEl.text('⚠️ Server unavailable');
+        console.error(err);
+    }
+}
 
 $(document).ready(function () {
     if (window.location.search == '?debug') debugmode = true;
@@ -89,6 +115,7 @@ $(document).ready(function () {
 
     $('#submitCode').click(async function () {
         const code = $('#accessCode').val().trim();
+        const email = $('#userEmail').val().trim();
         const errorEl = $('#errorMessage');
 
         if (!code) {
@@ -96,25 +123,8 @@ $(document).ready(function () {
             return;
         }
 
-        try {
-            const res = await fetch('http://localhost:3000/auth/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code }),
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                localStorage.setItem('drimssyGameAccess', 'true');
-                $('#accessModal').fadeOut();
-                showSplash();
-            } else {
-                errorEl.text('Wrong code');
-            }
-        } catch (err) {
-            errorEl.text('⚠️ Server unavailable');
-            console.error(err);
-        }
+        await verifyCode(code);
+        localStorage.setItem('drimssyUserEmail', email);
     });
 });
 
@@ -156,25 +166,20 @@ function showSplash() {
     $('.animated').css('animation-play-state', 'running');
     $('.animated').css('-webkit-animation-play-state', 'running');
 
-    // показуємо splash плавно
     $('#splash').removeClass('fade-out').addClass('fade-in');
 }
 
 function startGame() {
     currentstate = states.GameScreen;
 
-    // Приховуємо splash
     $('#splash').removeClass('fade-in').addClass('fade-out');
 
-    // Скидаємо рахунок
     setBigScore();
 
-    // Debug mode — показує bounding box
     if (debugmode) {
         $('.boundingbox').show();
     }
 
-    // Запускаємо основний цикл гри через requestAnimationFrame
     function gameLoopFrame() {
         gameloop();
         if (currentstate === states.GameScreen) {
@@ -211,14 +216,11 @@ function updatePlayer(player) {
 function gameloop() {
     var player = $('#player');
 
-    //update the player speed/position
     velocity += gravity;
     position += velocity;
 
-    //update the player
     updatePlayer(player);
 
-    //create the bounding box
     var box = document.getElementById('player').getBoundingClientRect();
     var origwidth = 34.0;
     var origheight = 24.0;
@@ -230,7 +232,6 @@ function gameloop() {
     var boxright = boxleft + boxwidth;
     var boxbottom = boxtop + boxheight;
 
-    //if we're in debug mode, draw the bounding box
     if (debugmode) {
         var boundingbox = $('#playerbox');
         boundingbox.css('left', boxleft);
@@ -239,25 +240,21 @@ function gameloop() {
         boundingbox.css('width', boxwidth);
     }
 
-    //did we hit the ground?
     if (box.bottom >= $('#land').offset().top) {
         playerDead();
         return;
     }
 
-    //have they tried to escape through the ceiling? :o
     var ceiling = $('#ceiling');
     if (boxtop <= ceiling.offset().top + ceiling.height()) position = 0;
 
-    //we can't go any further without a pipe
     if (pipes[0] == null) return;
 
-    //determine the bounding box of the next pipes inner area
     var nextpipe = pipes[0];
     var nextpipeupper = nextpipe.children('.pipe_upper');
 
     var pipetop = nextpipeupper.offset().top + nextpipeupper.height();
-    var pipeleft = nextpipeupper.offset().left - 2; // for some reason it starts at the inner pipes offset, not the outer pipes.
+    var pipeleft = nextpipeupper.offset().left - 2;
     var piperight = pipeleft + pipewidth;
     var pipebottom = pipetop + pipeheight;
 
@@ -269,33 +266,23 @@ function gameloop() {
         boundingbox.css('width', pipewidth);
     }
 
-    //have we gotten inside the pipe yet?
     if (boxright > pipeleft) {
-        //we're within the pipe, have we passed between upper and lower pipes?
         if (boxtop > pipetop && boxbottom < pipebottom) {
-            //yeah! we're within bounds
         } else {
-            //no! we touched the pipe
             playerDead();
             return;
         }
     }
 
-    //have we passed the imminent danger?
     if (boxleft > piperight) {
-        //yes, remove it
         pipes.splice(0, 1);
 
-        //and score a point
         playerScore();
     }
 }
 
-//Handle space bar
 $(document).keydown(function (e) {
-    //space bar!
     if (e.keyCode == 32) {
-        //in ScoreScreen, hitting space should click the "replay" button. else it's just a regular spacebar hit
         if (currentstate == states.ScoreScreen) $('#replay').click();
         else screenClick();
     }
@@ -304,10 +291,8 @@ $(document).keydown(function (e) {
 document.addEventListener(
     'pointerdown',
     function (e) {
-        // ігноруємо багатопальцеві жести
         if (e.pointerType === 'touch' && e.isPrimary === false) return;
 
-        // викликаємо дію
         screenClick();
     },
     { passive: true }
@@ -374,9 +359,7 @@ function setMedal() {
     var elemmedal = $('#medal');
     elemmedal.empty();
 
-    if (score < 10)
-        //signal that no medal has been won
-        return false;
+    if (score < 10) return false;
 
     if (score >= 10) medal = 'bronze';
     if (score >= 20) medal = 'silver';
@@ -384,37 +367,28 @@ function setMedal() {
     if (score >= 40) medal = 'platinum';
 
     elemmedal.append('<img src="assets/medal_' + medal + '.png" alt="' + medal + '">');
-
-    //signal that a medal has been won
     return true;
 }
 
 function playerDead() {
-    //stop animating everything!
     $('.animated').css('animation-play-state', 'paused');
     $('.animated').css('-webkit-animation-play-state', 'paused');
 
-    //drop the bird to the floor
-    var playerbottom = $('#player').position().top + $('#player').width(); //we use width because he'll be rotated 90 deg
+    var playerbottom = $('#player').position().top + $('#player').width();
     var floor = flyArea;
     var movey = Math.max(0, floor - playerbottom);
     $('#player').transition({ y: movey + 'px', rotate: 90 }, 1000, 'easeInOutCubic');
 
-    //it's time to change states. as of now we're considered ScoreScreen to disable left click/flying
     currentstate = states.ScoreScreen;
 
-    //destroy our gameloops
     clearInterval(loopGameloop);
     clearInterval(loopPipeloop);
     loopGameloop = null;
     loopPipeloop = null;
 
-    //mobile browsers don't support buzz bindOnce event
     if (isIncompatible.any()) {
-        //skip right to showing score
         showScore();
     } else {
-        //play the hit sound (then the dead sound) and then show score
         soundHit.play().bindOnce('ended', function () {
             soundDie.play().bindOnce('ended', function () {
                 showScore();
@@ -423,32 +397,102 @@ function playerDead() {
     }
 }
 
-function showScore() {
-    //unhide us
-    $('#scoreboard').css('display', 'block');
+async function fetchWinn() {
+    const email = localStorage.getItem('drimssyUserEmail');
 
-    //remove the big score
+    try {
+        const res = await fetch('https://drimssy-game-server.onrender.com/winner/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            // створюємо елементи
+            const bannerOverlay = $(`
+                <div id="winnerOverlay">
+                    <div id="winnerBanner">
+                        🎉 Congratulations! You’ve won a Mi Mi!<br>
+                        We’ll send all the details to your email soon.
+                    </div>
+                </div>
+            `);
+
+            $('body').append(bannerOverlay);
+
+            // стилі для темного фону
+            $('#winnerOverlay').css({
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'rgba(0, 0, 0, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999,
+                opacity: 0, // стартова прозорість
+            });
+
+            // стилі для банера
+            $('#winnerBanner').css({
+                background: '#e0b495ff',
+                color: '#fff',
+                padding: '24px 48px',
+                borderRadius: '18px',
+                fontSize: '20px',
+                fontWeight: '600',
+                textAlign: 'center',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                transform: 'scale(0.9)',
+            });
+
+            // ✨ додаємо появу з анімацією
+            $('#winnerOverlay').animate({ opacity: 1 }, 400);
+            $('#winnerBanner').animate(
+                { transform: 'scale(1)' },
+                {
+                    step: function (now, fx) {
+                        if (fx.prop === 'transform') {
+                            $(this).css('transform', `scale(${now})`);
+                        }
+                    },
+                    duration: 500,
+                }
+            );
+
+            localStorage.clear();
+        } else {
+            messageEl.text(`⚠️ ${data.message}`);
+            localStorage.removeItem('drimssyUserEmail');
+        }
+    } catch (err) {
+        console.error(err);
+        messageEl.text('⚠️ Server unavailable, please try again later.');
+    }
+}
+async function showScore() {
+    $('#scoreboard').css('display', 'block');
     setBigScore(true);
 
-    //have they beaten their high score?
     if (score > highscore) {
-        //yeah!
         highscore = score;
-        //save it!
         setCookie('highscore', highscore, 999);
     }
 
-    //update the scoreboard
     setSmallScore();
     setHighScore();
     var wonmedal = setMedal();
+
     if (!isMobileDevice) {
-        //SWOOSH!
         soundSwoosh.stop();
         soundSwoosh.play();
     }
-    //show the scoreboard
-    $('#scoreboard').css({ y: '40px', opacity: 0 }); //move it down so we can slide it up
+
+    $('#scoreboard').css({ y: '40px', opacity: 0 });
     $('#replay').css({ y: '40px', opacity: 0 });
     $('#scoreboard').transition({ y: '0px', opacity: 1 }, 600, 'ease', function () {
         if (!isMobileDevice) {
@@ -462,72 +506,26 @@ function showScore() {
             $('#medal').transition({ opacity: 1, scale: 1 }, 1200, 'ease');
         }
     });
-    if (score >= 100) {
-        const couponCode = 'MIMI-FREE-2025';
 
-        // Clear all local data except promo code
-        const savedPromo = localStorage.getItem('mimiPromoCode');
-        localStorage.clear();
-        if (savedPromo) localStorage.setItem('mimiPromoCode', savedPromo);
-
-        // Save new promo code and remove game access
-        localStorage.setItem('mimiPromoCode', couponCode);
+    if (score >= 1) {
+        await fetchWinn();
         localStorage.removeItem('drimssyGameAccess');
-
-        // Show coupon popup
-        const couponHTML = `
-            <div id="couponPopup" class="coupon-popup">
-                <h3>🎉 Congratulations!</h3>
-                <p>You’ve earned a free <b>MiMi plush toy</b>!</p>
-                <p>Your coupon code:</p>
-                <div class="coupon-code">${couponCode}</div>
-                <button id="copyCoupon">Copy Code</button>
-            </div>
-        `;
-
-        $('body').append(couponHTML);
-
-        $('#copyCoupon').click(() => {
-            navigator.clipboard.writeText(couponCode);
-            $('#copyCoupon').text('✅ Copied!');
-        });
-
-        $('#couponPopup')
-            .css({
-                position: 'fixed',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: '#fff',
-                padding: '20px 30px',
-                borderRadius: '12px',
-                textAlign: 'center',
-                zIndex: 9999,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                opacity: 0,
-                width: '300px',
-            })
-            .animate({ opacity: 1 }, 600);
     }
 
     replayclickable = true;
 }
 
 $('#replay').click(function () {
-    //make sure we can only click once
     if (!replayclickable) return;
     else replayclickable = false;
-    //SWOOSH!
     if (!isMobileDevice) {
         soundSwoosh.stop();
         soundSwoosh.play();
     }
-    //fade out the scoreboard
+
     $('#scoreboard').transition({ y: '-40px', opacity: 0 }, 1000, 'ease', function () {
-        //when that's done, display us back to nothing
         $('#scoreboard').css('display', 'none');
 
-        //start the game over!
         showSplash();
     });
 });
@@ -542,26 +540,22 @@ function playerScore() {
     setBigScore();
 }
 function updatePipes() {
-    // 1️⃣ Видаляємо старі труби, які вийшли за межі екрана
     $('.pipe')
         .filter(function () {
             return $(this).position().left <= -pipewidth;
         })
         .remove();
 
-    // 2️⃣ Якщо труб уже забагато — прибираємо найстарішу з масиву
     if (pipes.length > 6) {
         const oldPipe = pipes.shift();
         if (oldPipe && oldPipe.remove) oldPipe.remove();
     }
 
-    // 3️⃣ Генеруємо нову трубу
     const padding = 80;
-    const constraint = flyArea - pipeheight - padding * 2; // простір для випадкової висоти
+    const constraint = flyArea - pipeheight - padding * 2;
     const topheight = Math.floor(Math.random() * constraint + padding);
     const bottomheight = flyArea - pipeheight - topheight;
 
-    // 4️⃣ Створюємо HTML лише один раз (менше reflow)
     const newpipe = $(`
         <div class="pipe animated" style="will-change: transform;">
             <div class="pipe_upper" style="height:${topheight}px;"></div>
@@ -569,7 +563,6 @@ function updatePipes() {
         </div>
     `);
 
-    // 5️⃣ Додаємо трубу на екран і до списку
     $('#flyarea').append(newpipe);
     pipes.push(newpipe);
 }

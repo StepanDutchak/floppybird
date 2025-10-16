@@ -164,7 +164,7 @@ Screen - Game
 {
    position: absolute;
    height: 676px;
-   top:-696px;
+   top:-656px;
    width: 100%;
    background-image: url('../assets/sky.png');
    background-repeat: repeat-x;
@@ -420,6 +420,7 @@ Screen - Game
   font-family: 'Arial', sans-serif;
   margin-bottom: 8px;
   color: #333;
+  font-size: 16px;
 }
 
 .modal-subtext {
@@ -440,7 +441,7 @@ Screen - Game
 .modal-content button {
   margin-top: 14px;
   padding: 8px 16px;
-  background: #4caf50;
+  background: #f5a568;
   border: none;
   border-radius: 6px;
   color: white;
@@ -450,7 +451,7 @@ Screen - Game
 }
 
 .modal-content button:hover {
-  background: #43a047;
+  background: #EFE3DA;
 }
 
 .error {
@@ -481,7 +482,7 @@ Screen - Game
     display: inline-block;
 }
 #copyCoupon {
-    background: #ff4081;
+    background: #EFE3DA;
     color: white;
     border: none;
     padding: 8px 14px;
@@ -490,5 +491,78 @@ Screen - Game
     font-weight: bold;
 }
 #copyCoupon:hover {
-    background: #ff6699;
+    background: #eee7e2;
+}
+
+.coupon-popup {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  max-width: 360px;
+  margin: 0 auto;
+  font-family: 'Inter', 'Poppins', 'Arial', sans-serif;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.coupon-popup h3 {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.coupon-popup p {
+  font-size: 1rem;
+  color: #555;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.coupon-input {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 16px 0 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.25s ease;
+  background: #f9f9f9;
+  outline: none;
+}
+
+.coupon-input:focus {
+  border-color: #ff9bd2;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 155, 210, 0.2);
+}
+
+.coupon-popup button {
+  background: linear-gradient(135deg, #EFE3DA, #EFE3DA);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 120, 196, 0.3);
+}
+
+.coupon-popup button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 120, 196, 0.4);
+}
+
+.coupon-message {
+  margin-top: 14px;
+  font-size: 14px;
+  color: #444;
+  transition: color 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
